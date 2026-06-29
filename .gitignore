@@ -1,0 +1,10 @@
+# Personal agent instructions (not shared)
+docs/AGENTS.md
+
+# macOS
+.DS_Store
+
+# Xcode (add more as the project is created)
+DerivedData/
+*.xcuserstate
+xcuserdata/
