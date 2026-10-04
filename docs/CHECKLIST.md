@@ -21,24 +21,24 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 <!-- Edit this line when you switch tasks -->
 
-**Next up:** Step 0 — Install Xcode (if not installed), then Step 1 — Xcode project scaffolding
+**Next up:** Step 2 — SwiftData models (NudgeTask, TaskInstance, NudgeCategory)
 
 ### Notes / blockers
 
 <!-- Agents: log anything that blocks the next step -->
 
-- Xcode install status: _unknown — confirm with user_
-- No Xcode project in repo yet
+- Xcode 26.6 installed; project at `Nudge/Nudge.xcodeproj`
+- Step 1 verified: three tabs work in Simulator
 
 ---
 
 ## Step 0 — Environment (pre-build)
 
-- [ ] Install Xcode from Mac App Store (~12 GB)
-- [ ] Open Xcode once; allow additional components to install
-- [ ] Confirm iOS Simulator works (any sample project or after Step 1)
+- [x] Install Xcode from Mac App Store (~12 GB)
+- [x] Open Xcode once; allow additional components to install
+- [x] Confirm iOS Simulator works (any sample project or after Step 1)
 - [ ] Optional: install SF Symbols app from [developer.apple.com/sf-symbols](https://developer.apple.com/sf-symbols)
-- [ ] Repo cloned; Cursor + Xcode workflow understood (edit in Cursor, build in Xcode)
+- [x] Repo cloned; Cursor + Xcode workflow understood (edit in Cursor, build in Xcode)
 
 ---
 
@@ -46,14 +46,14 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 **Goal:** App launches in simulator with three tabs (placeholder content).
 
-- [ ] Create new Xcode project: iOS → App → SwiftUI + SwiftData → name **Nudge**
-- [ ] Set minimum deployment target to **iOS 17**
-- [ ] Add project to this repo (sensible folder, e.g. `Nudge/` or root — stay consistent)
-- [ ] Replace `ContentView` with `TabView`: Today, Goals, Progress
-- [ ] Create `TodayView.swift`, `GoalsView.swift`, `ProgressView.swift` (placeholder text)
-- [ ] Add SF Symbols tab icons
-- [ ] Add `.gitignore` entries for Xcode user state (if not already)
-- [ ] **Verify:** ⌘R runs app; all three tabs switch correctly
+- [x] Create new Xcode project: iOS → App → SwiftUI + SwiftData → name **Nudge**
+- [x] Set minimum deployment target to **iOS 17** (template set iOS 26.5; meets minimum)
+- [x] Add project to this repo (sensible folder, e.g. `Nudge/` or root — stay consistent)
+- [x] Replace `ContentView` with `TabView`: Today, Goals, Progress
+- [x] Create `TodayView.swift`, `GoalsView.swift`, `ProgressScreen.swift` (placeholder text)
+- [x] Add SF Symbols tab icons
+- [x] Add `.gitignore` entries for Xcode user state (if not already)
+- [x] **Verify:** ⌘R runs app; all three tabs switch correctly
 
 ---
 

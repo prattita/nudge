@@ -5,7 +5,20 @@ docs/GROWTH.md
 # macOS
 .DS_Store
 
-# Xcode (add more as the project is created)
+# Xcode
 DerivedData/
 *.xcuserstate
 xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+.build/
+.swiftpm/
