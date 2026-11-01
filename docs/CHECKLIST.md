@@ -21,14 +21,15 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 <!-- Edit this line when you switch tasks -->
 
-**Next up:** Step 3 — Today view (list, checkbox, weekly grade)
+**Next up:** Step 4 — Add & Edit task form (replace temporary sample +)
 
 ### Notes / blockers
 
 <!-- Agents: log anything that blocks the next step -->
 
 - Xcode 26.6 installed; project at `Nudge/Nudge.xcodeproj`
-- Step 1 verified: three tabs work in Simulator
+- **UX pivot (v4.1):** Day rings narrate the week; letter grade only for *completed* weeks (Week tab → previous weeks). Today shows live day ring (0–100%). Goals tab kept as cheap placeholder for later.
+- Day shortcomings stay on locked day rings; week letter = aggregate completed/due (can still be A+ after a weak day).
 
 ---
 
@@ -78,19 +79,21 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 ---
 
-## Step 3 — Today view (task list & completion)
+## Step 3 — Today + Week rings (task list & completion)
 
-**Goal:** Tasks due today, grouped by category; weekly grade + today progress; check/uncheck.
+**Goal:** Tasks due today with live day ring; Week tab with Mon–Sun rings; letter only on completed weeks.
 
-- [ ] Query tasks due **today** (respect frequency + `createdAt`)
-- [ ] Group by category (hide `isHidden` presets with no tasks — if applicable)
-- [ ] Task row: emoji, title, frequency label, checkbox
-- [ ] Check → create `TaskInstance` (`status: completed`, `completedAt: Date()`, `source: manual`)
-- [ ] Uncheck → delete instance (same calendar day only)
-- [ ] Header: date, “X of Y done today”, **weekly** letter grade badge
-- [ ] Implement `GradeCalculator` (start minimal; full rules in Step 6/7 if split)
-- [ ] Accountability nudge when tasks remain incomplete
-- [ ] **Verify:** toggling tasks updates today bar and weekly grade live
+- [x] Query tasks due **today** (respect frequency + `createdAt`)
+- [x] Group by category (hide `isHidden` presets with no tasks — if applicable)
+- [x] Task row: emoji, title, frequency label, checkbox
+- [x] Check → create `TaskInstance` (`status: completed`, `completedAt: Date()`, `source: manual`)
+- [x] Uncheck → delete instance (same calendar day only)
+- [x] Today: fixed-height header + **day ring** (no live weekly letter)
+- [x] `GradeCalculator` + `DayRingView` (day % capped at 100%; week letter for completed weeks only)
+- [x] Week tab: 7 circles, prev-week navigation, letter on past weeks only
+- [x] Goals tab kept as placeholder
+- [x] Temporary + adds a sample daily task (until Step 4 Add form)
+- [x] **Verify:** build succeeded; user to smoke-test rings in Simulator
 
 ---
 

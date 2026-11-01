@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  Nudge
 //
-//  Root UI: bottom tab bar with Today, Goals, and Progress.
+//  Root UI: Today (day ring) · Goals (later) · Week (rings + past grades).
 //
 
 import SwiftUI
@@ -22,7 +22,7 @@ struct ContentView: View {
 
             ProgressScreen()
                 .tabItem {
-                    Label("Progress", systemImage: "chart.bar.fill")
+                    Label("Week", systemImage: "calendar")
                 }
         }
     }
