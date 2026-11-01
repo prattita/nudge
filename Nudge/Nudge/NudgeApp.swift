@@ -2,7 +2,7 @@
 //  NudgeApp.swift
 //  Nudge
 //
-//  Created by Paolo Ratti on 10/3/26.
+//  App entry point: opens the SwiftData store and shows the root UI.
 //
 
 import SwiftUI
@@ -12,12 +12,18 @@ import SwiftData
 struct NudgeApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            NudgeCategory.self,
+            NudgeTask.self,
+            TaskInstance.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+            // Seed presets once the store exists (first launch only).
+            let context = ModelContext(container)
+            DataSeeder.seedPresetsIfNeeded(context: context)
+            return container
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }

@@ -21,7 +21,7 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 <!-- Edit this line when you switch tasks -->
 
-**Next up:** Step 2 — SwiftData models (NudgeTask, TaskInstance, NudgeCategory)
+**Next up:** Step 3 — Today view (list, checkbox, weekly grade)
 
 ### Notes / blockers
 
@@ -63,18 +63,18 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 ### Models
 
-- [ ] `NudgeTask` — all fields per spec (incl. `autoCompleteFromHealthKit`, `isArchived`, `createdAt`)
-- [ ] `TaskInstance` — `dueDate`, `status`, `completedAt`, `source`, relationship to task
-- [ ] `NudgeCategory` — `name`, `colorHex`, `isPreset`, `isHidden`
-- [ ] Enums stored as `String` in persistence; typed enums in code
-- [ ] `scheduledWeekdays` as comma-separated string (not `[Int]` array)
-- [ ] CloudKit rules: default values on properties; optional relationships
-- [ ] Wire models into `NudgeApp` / `ModelContainer`
+- [x] `NudgeTask` — all fields per spec (incl. `autoCompleteFromHealthKit`, `isArchived`, `createdAt`)
+- [x] `TaskInstance` — `dueDate`, `status`, `completedAt`, `source`, relationship to task
+- [x] `NudgeCategory` — `name`, `colorHex`, `isPreset`, `isHidden`
+- [x] Enums stored as `String` in persistence; typed enums in code
+- [x] `scheduledWeekdays` as comma-separated string (not `[Int]` array)
+- [x] CloudKit rules: default values on properties; optional relationships
+- [x] Wire models into `NudgeApp` / `ModelContainer`
 
 ### First launch
 
-- [ ] Seed 4 preset categories if none exist (Health, Fitness, Pet Care, Mind + colors)
-- [ ] **Verify:** app builds; container initializes without crash
+- [x] Seed 4 preset categories if none exist (Health, Fitness, Pet Care, Mind + colors)
+- [x] **Verify:** app builds; container initializes without crash
 
 ---
 
