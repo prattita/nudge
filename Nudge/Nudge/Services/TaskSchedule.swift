@@ -8,7 +8,7 @@
 import Foundation
 
 enum TaskSchedule {
-    /// Whether `task` should appear on `day` (respects frequency, schedule, and `createdAt`).
+    /// Whether `task` should appear on `day` (frequency, schedule, `scheduleEffectiveFrom`).
     static func isDue(
         _ task: NudgeTask,
         on day: Date,
@@ -17,8 +17,9 @@ enum TaskSchedule {
         guard !task.isArchived else { return false }
 
         let dayStart = calendar.startOfDay(for: day)
-        let createdStart = calendar.startOfDay(for: task.createdAt)
-        guard dayStart >= createdStart else { return false }
+        // Prefer scheduleEffectiveFrom (create = createdAt; schedule edits = tomorrow).
+        let effectiveStart = calendar.startOfDay(for: task.scheduleEffectiveFrom)
+        guard dayStart >= effectiveStart else { return false }
 
         switch task.frequencyKind {
         case .daily:

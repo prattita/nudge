@@ -21,7 +21,7 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 <!-- Edit this line when you switch tasks -->
 
-**Next up:** Step 4 — Add & Edit task form (replace temporary sample +)
+**Next up:** Step 5 — Goals detail (dot grid, archive); answer primer quiz first
 
 ### Notes / blockers
 
@@ -101,13 +101,15 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 **Goal:** `TaskFormView` sheet for create and edit.
 
-- [ ] “+” button on Today and Goals nav bars
-- [ ] Fields: title, emoji, frequency, day/date pickers, category, optional reminder time
-- [ ] “New category” inline (name + color)
-- [ ] Edit via pencil on Goals expanded row (not expand tap)
-- [ ] Safe edits in place; **schedule edits apply from tomorrow** (history preserved)
-- [ ] Validation on save
-- [ ] **Verify:** new task appears on correct days; edit updates as specified
+- [x] “+” button on Today and Goals nav bars
+- [x] Fields: title, emoji, frequency, day/date pickers, category, optional reminder time
+- [x] “New category” inline (name + color)
+- [x] Edit via Goals row / pencil (full expand/detail still Step 5)
+- [x] Safe edits in place; **schedule edits apply from tomorrow** (`scheduleEffectiveFrom`)
+- [x] Validation on save
+- [x] Fitness-style padding/rings on Today + Week
+- [x] Reminder time stored on task (delivery = Step 9)
+- [x] **Verify:** Add/Edit form wired; user smoke-testing in Simulator
 
 ---
 

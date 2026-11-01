@@ -2,7 +2,7 @@
 //  TodayView.swift
 //  Nudge
 //
-//  Day tab: live day ring + tasks due today. No weekly letter here.
+//  Day tab — Fitness-style hero ring + task list.
 //
 
 import SwiftUI
@@ -15,9 +15,10 @@ struct TodayView: View {
     @Query(filter: #Predicate<NudgeCategory> { !$0.isHidden }, sort: \NudgeCategory.name)
     private var categories: [NudgeCategory]
 
+    @State private var showTaskForm = false
+
     private let calendar = Calendar.nudge
-    /// Fixed header height so the task list doesn't jump when ring/text updates.
-    private let headerHeight: CGFloat = 168
+    private let headerHeight: CGFloat = 220
 
     private var today: Date { calendar.startOfDay(for: Date()) }
 
@@ -49,22 +50,20 @@ struct TodayView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                dayHeader
+                fitnessHeader
                     .frame(height: headerHeight)
                     .frame(maxWidth: .infinity)
-                    .padding(.horizontal)
-                    .background(.background)
-
-                Divider()
+                    .background(Color(.systemBackground))
 
                 List {
                     if dueToday.isEmpty {
                         ContentUnavailableView(
                             "Nothing due today",
                             systemImage: "sun.max",
-                            description: Text("Add a sample task with + to try the Today loop (real Add form comes in Step 4).")
+                            description: Text("Tap + to add a habit.")
                         )
                         .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                     } else {
                         ForEach(Array(groupedDueToday.enumerated()), id: \.offset) { _, section in
                             Section {
@@ -74,10 +73,13 @@ struct TodayView: View {
                                         isCompleted: isCompleted(task),
                                         onToggle: { toggle(task) }
                                     )
+                                    .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
                                 }
                             } header: {
-                                Text(section.category?.name ?? "Uncategorized")
+                                Text((section.category?.name ?? "Uncategorized").uppercased())
+                                    .font(.caption.weight(.semibold))
                                     .foregroundStyle(Color(hex: section.category?.colorHex ?? "888888"))
+                                    .tracking(0.6)
                             }
                         }
                     }
@@ -89,6 +91,7 @@ struct TodayView: View {
                             )
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
+                            .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
                         }
                     }
                 }
@@ -98,48 +101,56 @@ struct TodayView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        addSampleTask()
+                        showTaskForm = true
                     } label: {
                         Image(systemName: "plus")
                     }
-                    .accessibilityLabel("Add sample task")
+                    .accessibilityLabel("Add task")
                 }
+            }
+            .sheet(isPresented: $showTaskForm) {
+                TaskFormView(taskToEdit: nil)
             }
         }
     }
 
-    private var dayHeader: some View {
-        HStack(spacing: 20) {
+    /// Fitness-like centered hero ring with quiet supporting copy.
+    private var fitnessHeader: some View {
+        VStack(spacing: 16) {
+            Text(today, format: .dateTime.weekday(.wide).month(.wide).day())
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.secondary)
+
             DayRingView(
-                label: "Today",
+                label: "",
                 progress: dayProgress,
                 state: dayProgress.hasTasks ? .active : .noTasks,
-                size: 88,
-                lineWidth: 8
+                size: 132,
+                lineWidth: 14,
+                showsLabel: false,
+                showsCenterPercent: true
             )
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text(today, format: .dateTime.weekday(.wide).month(.abbreviated).day())
-                    .font(.headline)
-
+            VStack(spacing: 4) {
                 if dayProgress.hasTasks {
-                    Text("\(dayProgress.fractionLabel) done")
+                    Text("\(dayProgress.fractionLabel) Done")
                         .font(.system(.title3, design: .rounded, weight: .semibold))
-                    Text("Ring fills as you complete tasks. Weekly grade waits until the week ends.")
-                        .font(.caption)
+                    Text("Keep moving — the week grade waits until Sunday.")
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
                 } else {
-                    Text("No tasks due")
-                        .font(.title3.weight(.semibold))
-                    Text("Add a habit to start filling today’s ring.")
-                        .font(.caption)
+                    Text("No Tasks Due")
+                        .font(.system(.title3, design: .rounded, weight: .semibold))
+                    Text("Add a habit to start today’s ring.")
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
-
-            Spacer(minLength: 0)
+            .multilineTextAlignment(.center)
         }
+        .padding(.horizontal, 24)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
     }
 
     private func isCompleted(_ task: NudgeTask) -> Bool {
@@ -161,19 +172,6 @@ struct TodayView: View {
         }
         try? modelContext.save()
     }
-
-    /// Temporary until Step 4 Add Task form exists.
-    private func addSampleTask() {
-        let category = categories.first { $0.name == "Health" } ?? categories.first
-        let task = NudgeTask(
-            title: "Sample habit",
-            emoji: "💊",
-            frequency: .daily,
-            category: category
-        )
-        modelContext.insert(task)
-        try? modelContext.save()
-    }
 }
 
 private struct TodayTaskRow: View {
@@ -183,13 +181,14 @@ private struct TodayTaskRow: View {
 
     var body: some View {
         Button(action: onToggle) {
-            HStack(spacing: 12) {
+            HStack(spacing: 14) {
                 Text(task.emoji)
                     .font(.title2)
+                    .frame(width: 36, height: 36)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(task.title)
-                        .font(.body)
+                        .font(.body.weight(.medium))
                         .foregroundStyle(.primary)
                         .strikethrough(isCompleted)
                     Text(task.frequencyKind.displayName)
@@ -201,9 +200,10 @@ private struct TodayTaskRow: View {
 
                 Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.title2)
-                    .foregroundStyle(isCompleted ? .green : .secondary)
+                    .foregroundStyle(isCompleted ? Color(red: 0.20, green: 0.78, blue: 0.35) : .secondary.opacity(0.5))
             }
             .contentShape(Rectangle())
+            .padding(.vertical, 2)
         }
         .buttonStyle(.plain)
     }

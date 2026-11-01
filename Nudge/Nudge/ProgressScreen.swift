@@ -2,7 +2,7 @@
 //  ProgressScreen.swift
 //  Nudge
 //
-//  Week tab: Mon–Sun day rings. Letter grade only for completed (past) weeks.
+//  Week tab — Fitness-style day rings; letter only for completed weeks.
 //
 
 import SwiftUI
@@ -12,10 +12,10 @@ struct ProgressScreen: View {
     @Query(filter: #Predicate<NudgeTask> { !$0.isArchived }, sort: \NudgeTask.title)
     private var tasks: [NudgeTask]
 
-    @State private var weekOffset: Int = 0 // 0 = current week, -1 = previous, etc.
+    @State private var weekOffset: Int = 0
 
     private let calendar = Calendar.nudge
-    private let weekdayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    private let weekdayLabels = ["M", "T", "W", "T", "F", "S", "S"]
 
     private var today: Date { calendar.startOfDay(for: Date()) }
 
@@ -45,47 +45,23 @@ struct ProgressScreen: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
+            ScrollView {
+                VStack(spacing: 28) {
                     weekNavigator
-                    weekRings
-                }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
 
-                Section {
-                    if let weekGrade, isCompletedWeek {
-                        HStack(alignment: .firstTextBaseline) {
-                            Text(weekGrade.letter)
-                                .font(.system(size: 48, weight: .bold, design: .rounded))
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Week grade")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                if weekGrade.hasWork {
-                                    Text("\(Int(weekGrade.percentage.rounded()))% · \(weekGrade.fractionLabel)")
-                                        .font(.subheadline)
-                                } else {
-                                    Text("No tasks were due this week")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            Spacer()
-                        }
-                        .padding(.vertical, 4)
-                    } else {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("In progress")
-                                .font(.title2.weight(.semibold))
-                            Text("Day rings fill as you go. A letter grade appears after this week ends (Sunday locks).")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                        .padding(.vertical, 4)
-                    }
-                } header: {
-                    Text(isCompletedWeek ? "Report card" : "This week")
+                    weekRings
+                        .padding(.horizontal, 16)
+
+                    reportCard
+                        .padding(.horizontal, 20)
+
+                    Spacer(minLength: 24)
                 }
+                .padding(.bottom, 32)
             }
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("Week")
         }
     }
@@ -95,17 +71,19 @@ struct ProgressScreen: View {
             Button {
                 weekOffset -= 1
             } label: {
-                Image(systemName: "chevron.left")
+                Image(systemName: "chevron.left.circle.fill")
+                    .font(.title2)
+                    .symbolRenderingMode(.hierarchical)
             }
             .accessibilityLabel("Previous week")
 
             Spacer()
 
-            VStack(spacing: 2) {
+            VStack(spacing: 4) {
                 Text(weekTitle)
-                    .font(.headline)
+                    .font(.system(.title3, design: .rounded, weight: .semibold))
                 Text(weekDateRange)
-                    .font(.caption)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
 
@@ -114,40 +92,104 @@ struct ProgressScreen: View {
             Button {
                 weekOffset = min(weekOffset + 1, 0)
             } label: {
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.right.circle.fill")
+                    .font(.title2)
+                    .symbolRenderingMode(.hierarchical)
             }
             .disabled(weekOffset >= 0)
+            .opacity(weekOffset >= 0 ? 0.35 : 1)
             .accessibilityLabel("Next week")
         }
-        .buttonStyle(.borderless)
+        .buttonStyle(.plain)
     }
 
     private var weekRings: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             ForEach(Array(dayProgresses.enumerated()), id: \.offset) { index, progress in
                 DayRingView(
                     label: weekdayLabels[index],
                     progress: progress,
                     state: ringState(for: progress.date, progress: progress),
-                    size: 40,
-                    lineWidth: 4
+                    size: 44,
+                    lineWidth: 5
                 )
                 .frame(maxWidth: .infinity)
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 20)
+        .padding(.horizontal, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
+    }
+
+    private var reportCard: some View {
+        Group {
+            if let weekGrade, isCompletedWeek {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("REPORT CARD")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .tracking(0.8)
+
+                    HStack(alignment: .firstTextBaseline, spacing: 16) {
+                        Text(weekGrade.letter)
+                            .font(.system(size: 64, weight: .bold, design: .rounded))
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Week grade")
+                                .font(.subheadline.weight(.medium))
+                            if weekGrade.hasWork {
+                                Text("\(Int(weekGrade.percentage.rounded()))% · \(weekGrade.fractionLabel)")
+                                    .font(.title3.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Text("No tasks were due")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer()
+                    }
+                }
+                .padding(24)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("IN PROGRESS")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .tracking(0.8)
+                    Text("Build your week")
+                        .font(.system(.title2, design: .rounded, weight: .semibold))
+                    Text("Rings fill as days lock. A letter grade shows up after Sunday.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(24)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
+            }
+        }
     }
 
     private var weekTitle: String {
-        if isCurrentWeek { return "Current week" }
-        if weekOffset == -1 { return "Last week" }
-        return "\(abs(weekOffset)) weeks ago"
+        if isCurrentWeek { return "This Week" }
+        if weekOffset == -1 { return "Last Week" }
+        return "\(abs(weekOffset)) Weeks Ago"
     }
 
     private var weekDateRange: String {
         let start = displayedWeekStart.formatted(.dateTime.month(.abbreviated).day())
         let end = displayedWeekEnd.formatted(.dateTime.month(.abbreviated).day())
-        return "\(start) – \(end)"
+        return "\(start)–\(end)"
     }
 
     private func ringState(for day: Date, progress: DayProgress) -> DayRingState {

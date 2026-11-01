@@ -25,6 +25,8 @@ final class NudgeTask {
     var autoCompleteFromHealthKit: Bool = false
     var isArchived: Bool = false
     var createdAt: Date = Date()
+    /// Schedule applies on/after this day. On create = createdAt; on schedule edit = tomorrow.
+    var scheduleEffectiveFrom: Date = Date()
 
     var category: NudgeCategory?
 
@@ -43,6 +45,7 @@ final class NudgeTask {
         autoCompleteFromHealthKit: Bool = false,
         isArchived: Bool = false,
         createdAt: Date = Date(),
+        scheduleEffectiveFrom: Date? = nil,
         category: NudgeCategory? = nil
     ) {
         self.id = UUID()
@@ -57,16 +60,15 @@ final class NudgeTask {
         self.autoCompleteFromHealthKit = autoCompleteFromHealthKit
         self.isArchived = isArchived
         self.createdAt = createdAt
+        self.scheduleEffectiveFrom = scheduleEffectiveFrom ?? createdAt
         self.category = category
     }
 
-    /// Typed view of the stored frequency string.
     var frequencyKind: TaskFrequency {
         get { TaskFrequency(rawValue: frequency) ?? .daily }
         set { frequency = newValue.rawValue }
     }
 
-    /// Parsed weekday numbers from `scheduledWeekdays`.
     var weekdayNumbers: [Int] {
         scheduledWeekdays
             .split(separator: ",")

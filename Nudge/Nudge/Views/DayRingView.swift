@@ -2,19 +2,15 @@
 //  DayRingView.swift
 //  Nudge
 //
-//  Activity-style circular day progress (0–100% fill).
+//  Fitness/Activity-style circular day progress (0–100% fill).
 //
 
 import SwiftUI
 
 enum DayRingState {
-    /// Day is still in the future.
     case future
-    /// No tasks scheduled that day.
     case noTasks
-    /// Today — still editable.
     case active
-    /// Past day — treated as locked (finalized by backfill later).
     case locked
 }
 
@@ -24,28 +20,36 @@ struct DayRingView: View {
     let state: DayRingState
     var size: CGFloat = 56
     var lineWidth: CGFloat = 6
+    var showsLabel: Bool = true
+    var showsCenterPercent: Bool = true
+
+    /// Exercise-ring green (Fitness-adjacent).
+    private let activityGreen = Color(red: 0.20, green: 0.78, blue: 0.35)
 
     private var ringColor: Color {
         switch state {
-        case .future: return .secondary.opacity(0.25)
-        case .noTasks: return .secondary.opacity(0.2)
-        case .active: return .accentColor
-        case .locked: return progress.fill >= 1 ? .green : .accentColor.opacity(0.85)
+        case .future: return Color.secondary.opacity(0.2)
+        case .noTasks: return Color.secondary.opacity(0.25)
+        case .active: return activityGreen
+        case .locked: return progress.fill >= 1 ? activityGreen : activityGreen.opacity(0.75)
         }
     }
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 8) {
             ZStack {
                 Circle()
-                    .stroke(Color.secondary.opacity(0.15), lineWidth: lineWidth)
+                    .stroke(Color.primary.opacity(0.08), lineWidth: lineWidth)
 
                 switch state {
                 case .future:
                     EmptyView()
                 case .noTasks:
                     Circle()
-                        .stroke(Color.secondary.opacity(0.25), style: StrokeStyle(lineWidth: lineWidth, dash: [3, 3]))
+                        .stroke(
+                            Color.secondary.opacity(0.3),
+                            style: StrokeStyle(lineWidth: lineWidth, dash: [4, 4])
+                        )
                 case .active, .locked:
                     Circle()
                         .trim(from: 0, to: progress.fill)
@@ -54,37 +58,48 @@ struct DayRingView: View {
                             style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                         )
                         .rotationEffect(.degrees(-90))
-                        .animation(.easeInOut(duration: 0.25), value: progress.fill)
+                        .animation(.easeInOut(duration: 0.3), value: progress.fill)
                 }
 
-                if state == .noTasks {
-                    Text("–")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
-                } else if state != .future, progress.hasTasks {
-                    Text("\(Int((progress.fill * 100).rounded()))")
-                        .font(.system(size: size * 0.22, weight: .semibold, design: .rounded))
-                        .foregroundStyle(state == .future ? .secondary : .primary)
+                if showsCenterPercent {
+                    centerLabel
                 }
             }
             .frame(width: size, height: size)
 
-            Text(label)
-                .font(.caption2.weight(state == .active ? .bold : .regular))
-                .foregroundStyle(state == .active ? .primary : .secondary)
+            if showsLabel {
+                Text(label)
+                    .font(.system(size: 12, weight: state == .active ? .semibold : .regular, design: .rounded))
+                    .foregroundStyle(state == .active ? .primary : .secondary)
+            }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityText)
     }
 
+    @ViewBuilder
+    private var centerLabel: some View {
+        switch state {
+        case .noTasks:
+            Text("–")
+                .font(.system(size: size * 0.22, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+        case .future:
+            EmptyView()
+        case .active, .locked:
+            if progress.hasTasks {
+                Text("\(Int((progress.fill * 100).rounded()))")
+                    .font(.system(size: size * 0.22, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.primary)
+            }
+        }
+    }
+
     private var accessibilityText: String {
         switch state {
-        case .future:
-            return "\(label), upcoming"
-        case .noTasks:
-            return "\(label), no tasks"
-        case .active, .locked:
-            return "\(label), \(progress.fractionLabel) complete"
+        case .future: return "\(label), upcoming"
+        case .noTasks: return "\(label), no tasks"
+        case .active, .locked: return "\(label), \(progress.fractionLabel) complete"
         }
     }
 }
