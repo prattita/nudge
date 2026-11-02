@@ -21,7 +21,7 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 <!-- Edit this line when you switch tasks -->
 
-**Next up:** Step 7 — Backfill primer/quiz, then implement
+**Next up:** Step 8 — CloudKit sync (or smoke-test Step 7 first)
 
 ### Notes / blockers
 
@@ -145,13 +145,13 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 **Goal:** No silent skips; misses recorded on app open.
 
-- [ ] `lastBackfillDate` in `@AppStorage` (first launch: start of today, no backfill)
-- [ ] On open: scan `lastBackfillDate` → yesterday for due tasks without instances
-- [ ] Respect `createdAt` (no retroactive misses)
-- [ ] Create `TaskInstance` with `status: missed` where needed
-- [ ] Update `lastBackfillDate` after processing
-- [ ] Brief UI summary when backfill records misses
-- [ ] After backfill: missed days **final for MVP** (no makeup — Option D is post-MVP)
+- [x] `lastBackfillDate` in `@AppStorage` (first launch: start of today, no backfill)
+- [x] On open: scan `lastBackfillDate` → yesterday for due tasks without instances
+- [x] Respect `scheduleEffectiveFrom` via `TaskSchedule.isDue` (no retroactive misses)
+- [x] Create `TaskInstance` with `status: missed` where needed
+- [x] Update `lastBackfillDate` to yesterday after processing
+- [x] Brief UI summary alert when backfill records misses
+- [x] After backfill: missed days **final for MVP** (no makeup — Option D is post-MVP)
 - [ ] **Verify:** don’t open app for 2+ days → misses appear; grades update
 
 ---
