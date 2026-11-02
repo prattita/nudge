@@ -21,7 +21,7 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 <!-- Edit this line when you switch tasks -->
 
-**Next up:** Step 5 — Goals detail (dot grid, archive); answer primer quiz first
+**Next up:** Step 6 — Week history chart + breakdowns (rings pivot); answer quiz first
 
 ### Notes / blockers
 
@@ -115,26 +115,26 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 ## Step 5 — Goals view
 
-**Goal:** All active tasks, weekly grade, expandable detail.
+**Goal:** All active tasks, expandable week dots (no mid-week letter badges).
 
-- [ ] List non-archived tasks with weekly grade badge
-- [ ] Expand row → 7-day dot grid (✓ / ✗ / dot for today / neutral for non-scheduled days)
-- [ ] Completion fraction: “X of Y due this week”
-- [ ] Pencil → edit sheet
-- [ ] Swipe → archive (`isArchived = true`)
-- [ ] **Verify:** dot grid matches instances; archive hides from Today/Goals
+- [x] List non-archived tasks with week fraction (not live letter)
+- [x] Expand row → 7-day dot grid (✓ / ✗ / today / upcoming / not scheduled)
+- [x] Completion fraction: “X of Y due this week”
+- [x] Pencil → edit sheet (separate from expand)
+- [x] Swipe → archive (`isArchived = true`)
+- [x] **Verify:** built; smoke-test expand/dots/archive in Simulator
 
 ---
 
-## Step 6 — Progress view
+## Step 6 — Week history & breakdowns
 
-**Goal:** Weekly report card, history chart, breakdowns.
+**Goal:** Extend Week tab — multi-week chart + per-task/category breakdowns. (Live mid-week letters stay out; letters only for completed weeks.)
 
-- [ ] Report card: large grade, week date range, completion %
-- [ ] Multi-week bar chart (weeks since first task, min 1 bar; current week highlighted)
-- [ ] Past weeks: full Mon–Sun denominator; current week: through today only
-- [ ] Per-task breakdown with progress bar + grade
-- [ ] Per-category grade summary
+- [ ] Report card for **completed** weeks (already partly on Week tab)
+- [ ] Multi-week bar chart (weeks since first task, min 1 bar; current week = in-progress, no letter bar or neutral)
+- [ ] Completed weeks: full Mon–Sun aggregate; current week: optional progress-only (no letter)
+- [ ] Per-task breakdown for selected week (fraction / bar — letter only if week completed)
+- [ ] Per-category summary for selected week
 - [ ] Swift Charts or custom bars
 - [ ] **Verify:** chart and grades match `GradeCalculator`
 
