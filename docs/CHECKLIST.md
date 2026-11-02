@@ -21,7 +21,7 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 <!-- Edit this line when you switch tasks -->
 
-**Next up:** Step 7 — Midnight backfill / miss recording
+**Next up:** Step 7 — Backfill primer/quiz, then implement
 
 ### Notes / blockers
 
