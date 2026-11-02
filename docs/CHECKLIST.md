@@ -21,7 +21,7 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 <!-- Edit this line when you switch tasks -->
 
-**Next up:** Step 9 — Local notifications (after CloudKit smoke-test)
+**Next up:** MVP smoke test + run on physical iPhone
 
 ### Notes / blockers
 
@@ -175,13 +175,13 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 **Goal:** Optional per-task reminder time.
 
-- [ ] Request notification permission (first launch)
-- [ ] `NotificationManager` — schedule / cancel
-- [ ] On save: schedule for task’s scheduled days at `reminderTime`
-- [ ] On edit/archive/complete today: reschedule or cancel appropriately
-- [ ] Monthly/yearly: one-shot triggers for next due date
-- [ ] MVP: one time applies to all scheduled days (n-times/week)
-- [ ] **Verify:** notification fires on scheduled day; cancels when task done
+- [x] Request notification permission (first launch / app open)
+- [x] `NotificationManager` — schedule / cancel (21-day one-shot horizon, refreshed on launch)
+- [x] On save: schedule for task’s scheduled days at `reminderTime`
+- [x] On edit/archive/complete today: reschedule or cancel appropriately
+- [x] Monthly/yearly: covered via due-day one-shots in horizon
+- [x] MVP: one time applies to all scheduled days (n-times/week)
+- [ ] **Verify:** Allow notifications → set reminder a minute ahead → fires; complete cancels today’s
 
 ---
 

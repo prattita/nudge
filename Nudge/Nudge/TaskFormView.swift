@@ -280,6 +280,7 @@ struct TaskFormView: View {
         let yearDay = calendar.component(.day, from: yearlyDate)
         let reminder = reminderEnabled ? reminderTime : nil
 
+        let savedTask: NudgeTask
         if let task = taskToEdit {
             let scheduleChanged = didScheduleChange(task)
             task.title = trimmed
@@ -296,6 +297,7 @@ struct TaskFormView: View {
                 let tomorrow = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: Date())) ?? Date()
                 task.scheduleEffectiveFrom = tomorrow
             }
+            savedTask = task
         } else {
             let now = Date()
             let task = NudgeTask(
@@ -312,9 +314,11 @@ struct TaskFormView: View {
                 category: category
             )
             modelContext.insert(task)
+            savedTask = task
         }
 
         try? modelContext.save()
+        NotificationManager.refresh(for: savedTask, calendar: calendar)
         dismiss()
     }
 

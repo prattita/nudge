@@ -82,6 +82,7 @@ struct GoalsView: View {
             let task = tasks[index]
             task.isArchived = true
             expandedTaskIDs.remove(task.id)
+            NotificationManager.cancelAll(for: task.id, calendar: .nudge)
         }
         try? modelContext.save()
     }

@@ -160,6 +160,9 @@ struct TodayView: View {
     private func toggle(_ task: NudgeTask) {
         if let existing = TaskSchedule.instance(for: task, on: today, calendar: calendar) {
             modelContext.delete(existing)
+            try? modelContext.save()
+            // Unchecked — put today’s reminder back if still relevant.
+            NotificationManager.refresh(for: task, calendar: calendar)
         } else {
             let instance = TaskInstance(
                 dueDate: today,
@@ -169,8 +172,9 @@ struct TodayView: View {
                 task: task
             )
             modelContext.insert(instance)
+            try? modelContext.save()
+            NotificationManager.cancelToday(for: task, calendar: calendar)
         }
-        try? modelContext.save()
     }
 }
 

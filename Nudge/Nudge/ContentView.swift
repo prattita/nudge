@@ -37,6 +37,11 @@ struct ContentView: View {
         }
         .task {
             runBackfillIfNeeded()
+            await NotificationManager.requestPermissionIfNeeded()
+            NotificationManager.refreshAll(
+                tasks: allTasks.filter { !$0.isArchived },
+                calendar: .nudge
+            )
         }
         .alert("Misses recorded", isPresented: $showBackfillAlert) {
             Button("OK", role: .cancel) {}
