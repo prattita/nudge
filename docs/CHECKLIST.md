@@ -21,7 +21,7 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 <!-- Edit this line when you switch tasks -->
 
-**Next up:** Step 8 — CloudKit sync (or smoke-test Step 7 first)
+**Next up:** Step 9 — Local notifications (after CloudKit smoke-test)
 
 ### Notes / blockers
 
@@ -160,11 +160,14 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 **Goal:** iCloud backup and multi-device sync.
 
-- [ ] Enable iCloud capability + CloudKit container
-- [ ] Background Modes → Remote notifications
-- [ ] `ModelConfiguration` with CloudKit container ID
+- [x] Enable iCloud capability + CloudKit container (`Nudge.entitlements` → `iCloud.com.prattita.Nudge`)
+- [x] Background Modes → Remote notifications (`INFOPLIST_KEY_UIBackgroundModes`)
+- [x] `ModelConfiguration` with private CloudKit DB (+ local fallback if CloudKit unavailable)
+- [ ] **Manual in Xcode:** select your Team on the Nudge target (Signing & Capabilities); confirm iCloud CloudKit shows the container
+- [ ] Simulator/device signed into iCloud with same Apple ID
 - [ ] Test on two devices or simulator + device (same Apple ID)
 - [ ] **Verify:** create task on one device → appears on other
+- [ ] Note: first enable may need deleting the app once (store migration local → CloudKit)
 
 ---
 
