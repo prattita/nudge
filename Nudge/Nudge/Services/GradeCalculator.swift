@@ -3,11 +3,11 @@
 //  Nudge
 //
 //  Day rings narrate progress; letter grades appear only for *completed* weeks.
-//  Day fill is capped at 100% (Option A). Shortcomings stay on day rings;
-//  week letter uses aggregate completed/due for that Mon–Sun.
+//  Callers pass the task set (include archived for history; active-only for Today).
 //
 
 import Foundation
+import SwiftUI
 
 struct GradeResult: Equatable {
     let completed: Int
@@ -29,7 +29,6 @@ struct DayProgress: Equatable, Identifiable {
 
     var id: Date { date }
 
-    /// 0...1 fill for the ring (capped at 100%).
     var fill: Double {
         guard due > 0 else { return 0 }
         return min(1, Double(completed) / Double(due))
@@ -40,6 +39,32 @@ struct DayProgress: Equatable, Identifiable {
     var fractionLabel: String {
         "\(completed) of \(due)"
     }
+}
+
+struct WeekHistoryPoint: Identifiable, Equatable {
+    let weekStart: Date
+    let result: GradeResult
+    let isComplete: Bool
+    let isCurrent: Bool
+
+    var id: Date { weekStart }
+
+    /// Bar height 0...100. Current week uses through-today aggregate (no letter implied).
+    var chartPercentage: Double {
+        result.hasWork ? result.percentage : 0
+    }
+
+    var shortLabel: String {
+        weekStart.formatted(.dateTime.month(.abbreviated).day())
+    }
+}
+
+struct BreakdownItem: Identifiable, Equatable {
+    let id: UUID
+    let title: String
+    let subtitle: String
+    let emoji: String?
+    let result: GradeResult
 }
 
 enum GradeCalculator {
@@ -72,7 +97,20 @@ enum GradeCalculator {
         )
     }
 
-    /// Completion for a single calendar day (live today, locked truth for past once backfilled).
+    /// Color hint for completed-week bars (Fitness-adjacent greens / warm falls).
+    static func barColor(for result: GradeResult, isComplete: Bool) -> Color {
+        guard isComplete, result.hasWork else {
+            return Color.secondary.opacity(0.45)
+        }
+        switch result.percentage {
+        case 90...: return Color(red: 0.20, green: 0.78, blue: 0.35)
+        case 80..<90: return Color(red: 0.35, green: 0.72, blue: 0.45)
+        case 70..<80: return Color(red: 0.95, green: 0.65, blue: 0.14)
+        case 60..<70: return Color(red: 0.95, green: 0.45, blue: 0.20)
+        default: return Color(red: 0.90, green: 0.30, blue: 0.30)
+        }
+    }
+
     static func dayProgress(
         for tasks: [NudgeTask],
         on day: Date,
@@ -82,7 +120,7 @@ enum GradeCalculator {
         var completed = 0
         var due = 0
 
-        for task in tasks where !task.isArchived {
+        for task in tasks {
             guard TaskSchedule.isDue(task, on: dayStart, calendar: calendar) else { continue }
             due += 1
             if let instance = TaskSchedule.instance(for: task, on: dayStart, calendar: calendar),
@@ -94,7 +132,6 @@ enum GradeCalculator {
         return DayProgress(date: dayStart, completed: completed, due: due)
     }
 
-    /// Seven day-progress values for the week starting Monday `weekStart`.
     static func weekDayProgress(
         for tasks: [NudgeTask],
         weekStarting weekStart: Date,
@@ -107,7 +144,6 @@ enum GradeCalculator {
         }
     }
 
-    /// True when Sunday of that week is fully in the past (week can show a letter).
     static func isWeekComplete(
         weekStarting weekStart: Date,
         asOf date: Date = Date(),
@@ -118,15 +154,165 @@ enum GradeCalculator {
         return calendar.startOfDay(for: date) > calendar.startOfDay(for: sunday)
     }
 
-    /// Aggregate letter for a Mon–Sun week. Only meaningful when `isWeekComplete` is true.
+    /// Aggregate for a full Mon–Sun week (use for completed weeks / report card).
     static func weekGrade(
         for tasks: [NudgeTask],
         weekStarting weekStart: Date,
         calendar: Calendar = .nudge
     ) -> GradeResult {
-        let days = weekDayProgress(for: tasks, weekStarting: weekStart, calendar: calendar)
-        let completed = days.reduce(0) { $0 + $1.completed }
-        let due = days.reduce(0) { $0 + $1.due }
+        let start = calendar.startOfDay(for: weekStart)
+        guard let end = calendar.date(byAdding: .day, value: 6, to: start) else {
+            return grade(completed: 0, due: 0)
+        }
+        return aggregate(for: tasks, from: start, through: end, calendar: calendar)
+    }
+
+    /// Aggregate through `asOf` within the week (current week progress — no letter in UI).
+    static func weekProgressThrough(
+        for tasks: [NudgeTask],
+        weekStarting weekStart: Date,
+        asOf date: Date = Date(),
+        calendar: Calendar = .nudge
+    ) -> GradeResult {
+        let start = calendar.startOfDay(for: weekStart)
+        let today = calendar.startOfDay(for: date)
+        guard let sunday = calendar.date(byAdding: .day, value: 6, to: start) else {
+            return grade(completed: 0, due: 0)
+        }
+        let end = min(today, sunday)
+        guard end >= start else { return grade(completed: 0, due: 0) }
+        return aggregate(for: tasks, from: start, through: end, calendar: calendar)
+    }
+
+    /// History from the earliest task `createdAt` week through the current week (min 1 bar).
+    static func weekHistory(
+        for tasks: [NudgeTask],
+        asOf date: Date = Date(),
+        calendar: Calendar = .nudge
+    ) -> [WeekHistoryPoint] {
+        let today = calendar.startOfDay(for: date)
+        let currentWeekStart = calendar.startOfNudgeWeek(for: today)
+
+        let earliestCreated = tasks.map(\.createdAt).min() ?? today
+        var cursor = calendar.startOfNudgeWeek(for: earliestCreated)
+
+        var points: [WeekHistoryPoint] = []
+        while cursor <= currentWeekStart {
+            let complete = isWeekComplete(weekStarting: cursor, asOf: today, calendar: calendar)
+            let isCurrent = calendar.isDate(cursor, inSameDayAs: currentWeekStart)
+            let result: GradeResult
+            if complete {
+                result = weekGrade(for: tasks, weekStarting: cursor, calendar: calendar)
+            } else {
+                result = weekProgressThrough(for: tasks, weekStarting: cursor, asOf: today, calendar: calendar)
+            }
+            points.append(
+                WeekHistoryPoint(
+                    weekStart: cursor,
+                    result: result,
+                    isComplete: complete,
+                    isCurrent: isCurrent
+                )
+            )
+            guard let next = calendar.date(byAdding: .day, value: 7, to: cursor) else { break }
+            cursor = next
+        }
+
+        if points.isEmpty {
+            points.append(
+                WeekHistoryPoint(
+                    weekStart: currentWeekStart,
+                    result: weekProgressThrough(for: tasks, weekStarting: currentWeekStart, asOf: today, calendar: calendar),
+                    isComplete: false,
+                    isCurrent: true
+                )
+            )
+        }
+
+        return points
+    }
+
+    static func taskBreakdown(
+        for tasks: [NudgeTask],
+        weekStarting weekStart: Date,
+        asOf date: Date = Date(),
+        calendar: Calendar = .nudge
+    ) -> [BreakdownItem] {
+        let range = weekRange(weekStarting: weekStart, asOf: date, calendar: calendar)
+        return tasks.compactMap { task in
+            let result = aggregate(for: [task], from: range.start, through: range.end, calendar: calendar)
+            guard result.hasWork else { return nil }
+            let category = task.category?.name ?? "Uncategorized"
+            let archivedNote = task.isArchived ? " · archived" : ""
+            return BreakdownItem(
+                id: task.id,
+                title: task.title,
+                subtitle: category + archivedNote,
+                emoji: task.emoji,
+                result: result
+            )
+        }
+        .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+    }
+
+    static func categoryBreakdown(
+        for tasks: [NudgeTask],
+        weekStarting weekStart: Date,
+        asOf date: Date = Date(),
+        calendar: Calendar = .nudge
+    ) -> [BreakdownItem] {
+        let range = weekRange(weekStarting: weekStart, asOf: date, calendar: calendar)
+        let grouped = Dictionary(grouping: tasks) { $0.category?.id }
+        return grouped.compactMap { _, group -> BreakdownItem? in
+            let result = aggregate(for: group, from: range.start, through: range.end, calendar: calendar)
+            guard result.hasWork else { return nil }
+            let name = group.first?.category?.name ?? "Uncategorized"
+            let id = group.first?.category?.id ?? UUID()
+            return BreakdownItem(
+                id: id,
+                title: name,
+                subtitle: "\(group.count) habit\(group.count == 1 ? "" : "s")",
+                emoji: nil,
+                result: result
+            )
+        }
+        .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+    }
+
+    // MARK: - Private
+
+    private static func weekRange(
+        weekStarting weekStart: Date,
+        asOf date: Date,
+        calendar: Calendar
+    ) -> (start: Date, end: Date) {
+        let start = calendar.startOfDay(for: weekStart)
+        let today = calendar.startOfDay(for: date)
+        let sunday = calendar.date(byAdding: .day, value: 6, to: start) ?? start
+        if isWeekComplete(weekStarting: start, asOf: today, calendar: calendar) {
+            return (start, sunday)
+        }
+        return (start, min(today, sunday))
+    }
+
+    private static func aggregate(
+        for tasks: [NudgeTask],
+        from start: Date,
+        through end: Date,
+        calendar: Calendar
+    ) -> GradeResult {
+        var completed = 0
+        var due = 0
+        for task in tasks {
+            let slots = TaskSchedule.dueDates(for: task, from: start, through: end, calendar: calendar)
+            due += slots.count
+            for slot in slots {
+                if let instance = TaskSchedule.instance(for: task, on: slot, calendar: calendar),
+                   instance.statusKind == .completed {
+                    completed += 1
+                }
+            }
+        }
         return grade(completed: completed, due: due)
     }
 }

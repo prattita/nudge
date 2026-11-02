@@ -2,15 +2,18 @@
 //  ProgressScreen.swift
 //  Nudge
 //
-//  Week tab — Fitness-style day rings; letter only for completed weeks.
+//  Week tab: day rings, history chart, breakdowns.
+//  Letters only on completed weeks. Includes archived tasks in history.
 //
 
 import SwiftUI
 import SwiftData
+import Charts
 
 struct ProgressScreen: View {
-    @Query(filter: #Predicate<NudgeTask> { !$0.isArchived }, sort: \NudgeTask.title)
-    private var tasks: [NudgeTask]
+    /// All tasks (including archived) so past weeks stay honest after archive.
+    @Query(sort: \NudgeTask.title)
+    private var allTasks: [NudgeTask]
 
     @State private var weekOffset: Int = 0
 
@@ -35,12 +38,43 @@ struct ProgressScreen: View {
     }
 
     private var dayProgresses: [DayProgress] {
-        GradeCalculator.weekDayProgress(for: tasks, weekStarting: displayedWeekStart, calendar: calendar)
+        GradeCalculator.weekDayProgress(for: allTasks, weekStarting: displayedWeekStart, calendar: calendar)
     }
 
     private var weekGrade: GradeResult? {
         guard isCompletedWeek else { return nil }
-        return GradeCalculator.weekGrade(for: tasks, weekStarting: displayedWeekStart, calendar: calendar)
+        return GradeCalculator.weekGrade(for: allTasks, weekStarting: displayedWeekStart, calendar: calendar)
+    }
+
+    private var inProgressResult: GradeResult {
+        GradeCalculator.weekProgressThrough(
+            for: allTasks,
+            weekStarting: displayedWeekStart,
+            asOf: today,
+            calendar: calendar
+        )
+    }
+
+    private var history: [WeekHistoryPoint] {
+        GradeCalculator.weekHistory(for: allTasks, asOf: today, calendar: calendar)
+    }
+
+    private var taskBreakdown: [BreakdownItem] {
+        GradeCalculator.taskBreakdown(
+            for: allTasks,
+            weekStarting: displayedWeekStart,
+            asOf: today,
+            calendar: calendar
+        )
+    }
+
+    private var categoryBreakdown: [BreakdownItem] {
+        GradeCalculator.categoryBreakdown(
+            for: allTasks,
+            weekStarting: displayedWeekStart,
+            asOf: today,
+            calendar: calendar
+        )
     }
 
     var body: some View {
@@ -55,6 +89,15 @@ struct ProgressScreen: View {
                         .padding(.horizontal, 16)
 
                     reportCard
+                        .padding(.horizontal, 20)
+
+                    historyChartCard
+                        .padding(.horizontal, 20)
+
+                    breakdownCard(title: "HABITS", items: taskBreakdown, showEmoji: true)
+                        .padding(.horizontal, 20)
+
+                    breakdownCard(title: "CATEGORIES", items: categoryBreakdown, showEmoji: false)
                         .padding(.horizontal, 20)
 
                     Spacer(minLength: 24)
@@ -153,10 +196,7 @@ struct ProgressScreen: View {
                 }
                 .padding(24)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(Color(.secondarySystemGroupedBackground))
-                )
+                .background(cardBackground)
             } else {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("IN PROGRESS")
@@ -165,19 +205,123 @@ struct ProgressScreen: View {
                         .tracking(0.8)
                     Text("Build your week")
                         .font(.system(.title2, design: .rounded, weight: .semibold))
-                    Text("Rings fill as days lock. A letter grade shows up after Sunday.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if inProgressResult.hasWork {
+                        Text("\(inProgressResult.fractionLabel) settled so far — no letter until Sunday locks.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("Rings fill as days lock. A letter grade shows up after Sunday.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 .padding(24)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(Color(.secondarySystemGroupedBackground))
-                )
+                .background(cardBackground)
             }
         }
+    }
+
+    private var historyChartCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("HISTORY")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .tracking(0.8)
+
+            Text("Weekly completion")
+                .font(.system(.title3, design: .rounded, weight: .semibold))
+
+            Chart(history) { point in
+                BarMark(
+                    x: .value("Week", point.shortLabel),
+                    y: .value("Percent", point.chartPercentage)
+                )
+                .foregroundStyle(
+                    GradeCalculator.barColor(for: point.result, isComplete: point.isComplete)
+                )
+                .opacity(point.isCurrent ? 0.55 : 1)
+
+                if point.isCurrent {
+                    RuleMark(y: .value("Guide", point.chartPercentage))
+                        .lineStyle(StrokeStyle(lineWidth: 0))
+                }
+            }
+            .chartYScale(domain: 0...100)
+            .chartYAxis {
+                AxisMarks(values: [0, 50, 100]) { value in
+                    AxisGridLine()
+                    AxisValueLabel {
+                        if let n = value.as(Int.self) {
+                            Text("\(n)%")
+                        }
+                    }
+                }
+            }
+            .frame(height: 180)
+
+            Text("Gray / faded = current week (no grade). Colored bars = finished weeks.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(cardBackground)
+    }
+
+    private func breakdownCard(title: String, items: [BreakdownItem], showEmoji: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .tracking(0.8)
+
+            if items.isEmpty {
+                Text("Nothing due in this week yet.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(items) { item in
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            if showEmoji, let emoji = item.emoji {
+                                Text(emoji)
+                            }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.title)
+                                    .font(.body.weight(.medium))
+                                Text(item.subtitle)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if isCompletedWeek {
+                                Text(item.result.letter)
+                                    .font(.system(.title3, design: .rounded, weight: .bold))
+                            } else {
+                                Text(item.result.fractionLabel)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                        ProgressView(value: item.result.hasWork ? item.result.percentage / 100 : 0)
+                            .tint(
+                                GradeCalculator.barColor(for: item.result, isComplete: isCompletedWeek)
+                            )
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(cardBackground)
+    }
+
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 24, style: .continuous)
+            .fill(Color(.secondarySystemGroupedBackground))
     }
 
     private var weekTitle: String {

@@ -21,7 +21,7 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 <!-- Edit this line when you switch tasks -->
 
-**Next up:** Step 6 — Week history chart + breakdowns (rings pivot); answer quiz first
+**Next up:** Step 7 — Midnight backfill / miss recording
 
 ### Notes / blockers
 
@@ -130,13 +130,14 @@ Living progress tracker for MVP and post-MVP work. **Update this file** as tasks
 
 **Goal:** Extend Week tab — multi-week chart + per-task/category breakdowns. (Live mid-week letters stay out; letters only for completed weeks.)
 
-- [ ] Report card for **completed** weeks (already partly on Week tab)
-- [ ] Multi-week bar chart (weeks since first task, min 1 bar; current week = in-progress, no letter bar or neutral)
-- [ ] Completed weeks: full Mon–Sun aggregate; current week: optional progress-only (no letter)
-- [ ] Per-task breakdown for selected week (fraction / bar — letter only if week completed)
-- [ ] Per-category summary for selected week
-- [ ] Swift Charts or custom bars
-- [ ] **Verify:** chart and grades match `GradeCalculator`
+- [x] Report card for **completed** weeks (Week tab)
+- [x] Multi-week bar chart (weeks since first task, min 1 bar; current week faded / no letter)
+- [x] Completed weeks: full Mon–Sun aggregate; current week: through-today progress only
+- [x] Per-task breakdown for selected week (fraction mid-week; letter if week completed)
+- [x] Per-category summary for selected week
+- [x] Swift Charts
+- [x] History includes **archived** tasks (archive ≠ erase past)
+- [ ] **Verify:** chart and grades match `GradeCalculator` in Simulator
 
 ---
 
